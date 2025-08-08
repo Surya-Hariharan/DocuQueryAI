@@ -1,0 +1,14 @@
+# Environment files
+.env
+.env.*
+
+# Python bytecode cache
+__pycache__/
+
+# PDF files
+*.pdf
+
+venv/
+__pycache__/
+*.pyc
+.env
