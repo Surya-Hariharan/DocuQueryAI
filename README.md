@@ -68,7 +68,7 @@ flowchart LR
 ```
 .
 ├── api/
-│   ├── main.py            # FastAPI app, routing, request handling
+│   ├── main.py           # FastAPI app, routing, request handling
 │── parser.py             # PDF extraction & text chunking
 │── answer_generator.py   # LLM prompt building & Groq API calls
 │── db_vector_store.py    # PostgreSQL (pgvector) operations
