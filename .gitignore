@@ -1,14 +1,70 @@
 # Environment files
 .env
-.env.*
+.env.local
+.env.*.local
 
-# Python bytecode cache
+# Python
 __pycache__/
-
-# PDF files
-*.pdf
-
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
-__pycache__/
-*.pyc
-.env
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documents (don't commit user PDFs)
+*.pdf
+pdfs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# FAISS indices (if using FAISS)
+*.index
+*.meta
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# OS
+Thumbs.db
+.DS_Store

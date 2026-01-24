@@ -18,11 +18,11 @@ LLM_MODEL = os.getenv("LLM_MODEL", "llama3-8b-8192")
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 PDF_FOLDER = os.path.join(ROOT_DIR, os.getenv("PDF_FOLDER", "pdfs"))
 
-# === Chunking Config ===
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 500))
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 100))
-MIN_CHUNK_LENGTH = int(os.getenv("MIN_CHUNK_LENGTH", 50))
-TOP_K_CHUNKS = int(os.getenv("TOP_K_CHUNKS", 3))
+# === Chunking Config (optimized for token-based chunking) ===
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))  # Max tokens per chunk
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 50))  # Overlap in tokens
+MIN_CHUNK_LENGTH = int(os.getenv("MIN_CHUNK_LENGTH", 10))  # Min tokens
+TOP_K_CHUNKS = int(os.getenv("TOP_K_CHUNKS", 5))  # Increased for better context
 
 # === Embedding Vector Dimension (must match your embedding model and pgvector column) ===
 EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", 384))
@@ -34,6 +34,16 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_TABLE = os.getenv("DB_TABLE", "document_chunks")
+
+# === Performance Optimization Config ===
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))  # Batch size for embedding generation
+CACHE_SIZE = int(os.getenv("CACHE_SIZE", 5000))  # LRU cache size for embeddings
+USE_GPU = os.getenv("USE_GPU", "true").lower() == "true"  # Enable GPU acceleration
+USE_FAISS = os.getenv("USE_FAISS", "false").lower() == "true"  # Use FAISS instead of pgvector
+
+# === Connection Pool Config ===
+DB_POOL_MIN = int(os.getenv("DB_POOL_MIN", 2))
+DB_POOL_MAX = int(os.getenv("DB_POOL_MAX", 10))
 
 # Ensure all critical DB fields are set
 if not all([DB_NAME, DB_USER, DB_PASSWORD]):
