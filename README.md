@@ -883,8 +883,6 @@ This project directly addresses the HackRx 6.0 problem statement:
 6. **Developer-Friendly:** Excellent documentation, Docker support, easy setup
 
 ---
-```
-
 ---
 
 **Built for HackRx 6.0 | Production-Ready | High-Performance | Scalable**
