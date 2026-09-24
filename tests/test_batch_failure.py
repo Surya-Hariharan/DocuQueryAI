@@ -18,8 +18,8 @@ pytest.importorskip("fastapi", reason="requires the full app dependency stack")
 pytest.importorskip("psycopg2", reason="requires the full app dependency stack")
 pytest.importorskip("sentence_transformers", reason="requires the full app dependency stack")
 
-import src.api.main as main  # noqa: E402  (import must follow the importorskip guards above)
-from src.ingestion.document_model import RetrievedChunk  # noqa: E402
+import docuqueryai.api.main as main  # noqa: E402  (import must follow the importorskip guards above)
+from docuqueryai.ingestion.document_model import RetrievedChunk  # noqa: E402
 
 
 def _fake_chunk(text="some relevant context"):

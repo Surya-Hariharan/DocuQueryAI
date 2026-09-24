@@ -6,7 +6,7 @@ fully offline and deterministically.
 
 import pytest
 
-from src.security.url_safety import _is_public_ip, _validate_url
+from docuqueryai.security.url_safety import _is_public_ip, _validate_url
 
 
 class TestIsPublicIp:

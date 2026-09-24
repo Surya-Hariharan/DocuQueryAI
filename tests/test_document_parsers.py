@@ -18,7 +18,7 @@ pytest.importorskip("openpyxl", reason="openpyxl not installed")
 
 import PyPDF2  # noqa: E402
 
-from src.ingestion.parsers import PdfParser, DocxParser, XlsxParser, CsvParser  # noqa: E402
+from docuqueryai.ingestion.parsers import PdfParser, DocxParser, XlsxParser, CsvParser  # noqa: E402
 
 
 class TestPdfParser:
@@ -45,17 +45,35 @@ class TestPdfParser:
         # emitted for it (sections only include non-empty page text).
         assert doc.sections == []
 
-    def test_encrypted_pdf_yields_no_sections_without_raising(self):
+    def test_password_protected_pdf_raises_a_clear_controlled_error(self):
         writer = PyPDF2.PdfWriter()
         writer.add_blank_page(width=200, height=200)
         writer.encrypt(user_password="secret")
         buf = io.BytesIO()
         writer.write(buf)
 
-        # Should not raise FileNotDecryptedError or anything else — a
-        # locked document is just a document with no readable text to us.
-        doc = self.parser.parse(buf.getvalue())
-        assert doc.sections == []
+        # A PDF that genuinely requires a password is a distinct, actionable
+        # failure — not the same as a merely corrupt/unreadable file — so it
+        # must raise (a plain PyPDF2.errors.FileNotDecryptedError leaking
+        # out uncaught was the confirmed bug; ValueError is the controlled,
+        # caller-facing replacement, consistent with how the rest of the
+        # ingestion pipeline signals a clean 400 rather than a 500).
+        with pytest.raises(ValueError, match="password"):
+            self.parser.parse(buf.getvalue())
+
+    def test_permissions_only_encrypted_pdf_is_still_readable(self):
+        # A PDF encrypted only to restrict printing/copying (an owner
+        # password with an empty user password) has no real content
+        # protection — PyPDF2 can decrypt it with an empty password, and it
+        # must NOT be treated the same as a genuinely password-protected file.
+        writer = PyPDF2.PdfWriter()
+        writer.add_blank_page(width=200, height=200)
+        writer.encrypt(user_password="", owner_password="ownersecret")
+        buf = io.BytesIO()
+        writer.write(buf)
+
+        doc = self.parser.parse(buf.getvalue())  # should not raise
+        assert doc.sections == []  # still a blank page — no text to extract, but no error either
 
 
 class TestDocxParser:

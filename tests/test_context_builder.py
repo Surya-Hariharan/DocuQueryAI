@@ -1,5 +1,5 @@
-from src.retrieval.context_builder import build_context
-from src.ingestion.document_model import RetrievedChunk
+from docuqueryai.retrieval.context_builder import build_context
+from docuqueryai.ingestion.document_model import RetrievedChunk
 
 
 def _chunk(text, document_id="doc1", source_uri="policy.pdf", page_number=None, sheet_name=None):

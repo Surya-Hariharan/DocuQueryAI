@@ -6,7 +6,7 @@ collectible and runnable, in any environment.
 import io
 import zipfile
 
-from src.ingestion.file_type_detector import detect_file_type
+from docuqueryai.ingestion.file_type_detector import detect_file_type
 
 
 def _zip_with_entries(*entry_names: str) -> bytes:

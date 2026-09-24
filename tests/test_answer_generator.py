@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("groq", reason="groq package not installed in this environment")
 
-from src.generation.answer_generator import is_refusal, looks_grounded, REFUSAL_MESSAGE
+from docuqueryai.generation.answer_generator import is_refusal, looks_grounded, REFUSAL_MESSAGE
 
 
 def test_is_refusal_matches_exact_sentinel():

@@ -30,8 +30,8 @@ if not os.getenv("RUN_DB_INTEGRATION_TESTS"):
 pytest.importorskip("psycopg2", reason="requires the full app dependency stack")
 pytest.importorskip("sentence_transformers", reason="requires the full app dependency stack")
 
-from src.retrieval.pg_vector_store import PgVectorStore  # noqa: E402
-from src.ingestion.document_model import Chunk  # noqa: E402
+from docuqueryai.retrieval.pg_vector_store import PgVectorStore  # noqa: E402
+from docuqueryai.ingestion.document_model import Chunk  # noqa: E402
 
 
 @pytest.fixture()
