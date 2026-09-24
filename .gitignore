@@ -55,6 +55,10 @@ htmlcov/
 *.pdf
 pdfs/
 
+# ...except the small, synthetic, committed test fixtures — these aren't
+# user documents, they're deterministic regression-test inputs.
+!tests/fixtures/**/*.pdf
+
 # Database
 *.db
 *.sqlite
@@ -72,4 +76,5 @@ temp/
 
 # OS
 Thumbs.db
+desktop.ini
 .DS_Store
