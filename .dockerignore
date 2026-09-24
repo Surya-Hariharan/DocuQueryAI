@@ -1,0 +1,86 @@
+# Secrets — must never enter the build context, let alone the image.
+# Real configuration is supplied at runtime via --env-file / the platform's
+# environment configuration, never baked into a layer.
+.env
+.env.*
+
+# Git metadata — large, and irrelevant to the running application.
+.git/
+.gitignore
+.gitattributes
+
+# Python bytecode / packaging artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments — never ship the host's venv into the image.
+venv/
+env/
+ENV/
+.venv/
+.venv-test/
+
+# Test artifacts and the test suite itself (not needed at runtime).
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+requirements-dev.txt
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Local documents / generated data — never bake user-uploaded or sample
+# content into the image; these are runtime data, not source.
+*.pdf
+pdfs/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector index artifacts, if ever generated locally
+*.index
+*.meta
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# OS
+Thumbs.db
+
+# Docker itself
+Dockerfile
+.dockerignore

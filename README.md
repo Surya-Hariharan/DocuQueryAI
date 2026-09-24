@@ -157,36 +157,39 @@ Build a system that uses Large Language Models (LLMs) to **process natural langu
 ## 📂 Project Structure
 
 Modules are grouped by pipeline stage — ingestion, retrieval, generation,
-security — inside one importable package, rather than ~15 flat files at
-the repo root.
+security — inside one properly installable package (`docuqueryai`), laid
+out under `src/` per standard Python packaging convention, rather than
+~15 flat files at the repo root.
 
 ```
 DocuQueryAI/
-├── src/                            # the application package
-│   ├── config.py                   # Environment & configuration
-│   ├── utils.py                    # Utilities (caching, monitoring, retry)
-│   ├── api/
-│   │   └── main.py                 # FastAPI app, endpoints, authentication
-│   ├── ingestion/
-│   │   ├── document_model.py       # CanonicalDocument / DocumentSection / Chunk / RetrievedChunk
-│   │   ├── file_type_detector.py   # Magic-byte format detection (not trusted from extension)
-│   │   ├── chunking.py             # PDF page extraction & token-aware chunking primitives
-│   │   ├── parsers.py              # Format-specific parsers (PDF/DOCX/XLSX/CSV) + registry
-│   │   └── pipeline.py             # The one ingestion pipeline: detect → parse → chunk → metadata
-│   ├── retrieval/
-│   │   ├── vector_store.py         # VectorStore interface (contract for storage backends)
-│   │   ├── pg_vector_store.py      # PostgreSQL/pgvector implementation
-│   │   ├── embeddings.py           # Embedding generation (GPU-accelerated)
-│   │   └── context_builder.py      # Source-tagged prompt context assembly
-│   ├── generation/
-│   │   └── answer_generator.py     # LLM prompt building, Groq API calls, groundedness check
-│   └── security/
-│       └── url_safety.py           # SSRF-guarded, size-capped URL fetching
+├── pyproject.toml                  # packaging + pytest config — see Installation below
+├── src/
+│   └── docuqueryai/                # the installed package — "import docuqueryai"
+│       ├── config.py               # Environment & configuration
+│       ├── utils.py                # Utilities (caching, monitoring, retry)
+│       ├── api/
+│       │   └── main.py             # FastAPI app, endpoints, authentication
+│       ├── ingestion/
+│       │   ├── document_model.py       # CanonicalDocument / DocumentSection / Chunk / RetrievedChunk
+│       │   ├── file_type_detector.py   # Magic-byte format detection (not trusted from extension)
+│       │   ├── chunking.py             # PDF page extraction & token-aware chunking primitives
+│       │   ├── parsers.py              # Format-specific parsers (PDF/DOCX/XLSX/CSV) + registry
+│       │   └── pipeline.py             # The one ingestion pipeline: detect → parse → chunk → metadata
+│       ├── retrieval/
+│       │   ├── vector_store.py         # VectorStore interface (contract for storage backends)
+│       │   ├── pg_vector_store.py      # PostgreSQL/pgvector implementation
+│       │   ├── embeddings.py           # Embedding generation (GPU-accelerated)
+│       │   └── context_builder.py      # Source-tagged prompt context assembly
+│       ├── generation/
+│       │   └── answer_generator.py     # LLM prompt building, Groq API calls, groundedness check
+│       └── security/
+│           └── url_safety.py           # SSRF-guarded, size-capped URL fetching
 ├── tests/                          # pytest suite — see Testing below
-├── requirements.txt                # Python dependencies
-├── requirements-dev.txt            # + pytest, for running the test suite
-├── pytest.ini
+├── requirements.txt                # Python dependencies (also the single source pyproject.toml reads)
+├── requirements-dev.txt            # + pytest, for `pip install -r` workflows
 ├── Dockerfile                      # Container image
+├── .dockerignore                   # Keeps .env, .git, caches, and tests/ out of the image
 ├── .env.example                    # Environment template
 └── README.md                       # This file
 ```
@@ -219,8 +222,14 @@ venv\Scripts\activate
 # macOS/Linux:
 source venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the package in editable mode — this also installs every
+# dependency (pyproject.toml reads them from requirements.txt), and is
+# what makes `import docuqueryai` work from anywhere, not just the repo
+# root. This is the canonical setup command for this project.
+pip install -e .
+
+# Add pytest to also run the test suite:
+pip install -e ".[dev]"
 ```
 
 ### 3️⃣ Configure Environment Variables
@@ -283,12 +292,12 @@ package, importable as-is with no `sys.path` tricks or directory-changing.
 
 **Development Mode:**
 ```bash
-uvicorn src.api.main:app --reload --port 8000
+uvicorn docuqueryai.api.main:app --reload --port 8000
 ```
 
 **Production Mode:**
 ```bash
-uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn docuqueryai.api.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 **Docker:**
@@ -683,6 +692,10 @@ DB_POOL_MAX=10              # Maximum connections
 
 ## 🐳 Docker Deployment
 
+`.dockerignore` keeps `.env` (and `.git`, caches, and the test suite) out
+of the build context entirely — secrets are supplied only at container
+runtime via `--env-file`, as shown below, never baked into the image.
+
 ### Standard Deployment
 
 **Build:**
@@ -801,7 +814,10 @@ psql docuqueryai -c "CREATE EXTENSION vector;"
 source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 
-# Reinstall dependencies
+# If the missing module is "docuqueryai" itself, the package isn't installed:
+pip install -e .
+
+# For any other missing dependency, reinstall:
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -929,7 +945,7 @@ git clone https://github.com/your-username/DocuQueryAI.git
 pip install -r requirements-dev.txt
 
 # Make changes and test
-uvicorn src.api.main:app --reload
+uvicorn docuqueryai.api.main:app --reload
 pytest -v
 ```
 
@@ -1018,13 +1034,13 @@ This project directly addresses the HackRx 6.0 problem statement:
 **Minimal setup in 3 commands:**
 ```bash
 # 1. Install
-pip install -r requirements.txt
+pip install -e .
 
 # 2. Configure
 cp .env.example .env && nano .env  # Add your GROQ_API_KEY
 
 # 3. Run (from the repo root)
-uvicorn src.api.main:app --reload
+uvicorn docuqueryai.api.main:app --reload
 ```
 
 **Test the system:**
