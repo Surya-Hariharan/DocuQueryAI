@@ -5,14 +5,14 @@ import psycopg2
 from psycopg2 import pool
 from typing import List, Optional
 
-from docuqueryai.config import (
+from src.config import (
     DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_TABLE,
     EMBEDDING_DIM, DEFAULT_TENANT_ID
 )
-from docuqueryai.utils import monitor_performance, compute_text_hash, batch_items, retry_on_failure
-from docuqueryai.retrieval.embeddings import embed_query, embed_passages_batch
-from docuqueryai.retrieval.vector_store import VectorStore
-from docuqueryai.ingestion.document_model import Chunk, RetrievedChunk
+from src.utils import monitor_performance, compute_text_hash, batch_items, retry_on_failure
+from src.retrieval.embeddings import embed_query, embed_passages_batch
+from src.retrieval.vector_store import VectorStore
+from src.ingestion.document_model import Chunk, RetrievedChunk
 
 # === Logging ===
 logger = logging.getLogger("pg_vector_store")

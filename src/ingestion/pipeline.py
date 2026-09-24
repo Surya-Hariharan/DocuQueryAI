@@ -10,11 +10,11 @@ import logging
 import os
 from typing import List, Optional
 
-from docuqueryai.config import PDF_FOLDER
-from docuqueryai.ingestion.document_model import Chunk
-from docuqueryai.ingestion.parsers import get_parser
-from docuqueryai.ingestion.file_type_detector import detect_file_type
-from docuqueryai.ingestion.chunking import split_text_into_chunks
+from src.config import PDF_FOLDER
+from src.ingestion.document_model import Chunk
+from src.ingestion.parsers import get_parser
+from src.ingestion.file_type_detector import detect_file_type
+from src.ingestion.chunking import split_text_into_chunks
 
 logger = logging.getLogger("pipeline")
 
@@ -65,7 +65,7 @@ def parse_files_in_folder(folder_path: str = PDF_FOLDER, vector_store=None):
     Not used by the live API. Pass an already-initialized `vector_store` to
     reuse its connection pool; if omitted, a new one is created here.
     """
-    from docuqueryai.retrieval.pg_vector_store import PgVectorStore  # deferred: avoids importing the DB layer for API-side parsing
+    from src.retrieval.pg_vector_store import PgVectorStore  # deferred: avoids importing the DB layer for API-side parsing
 
     if vector_store is None:
         vector_store = PgVectorStore()

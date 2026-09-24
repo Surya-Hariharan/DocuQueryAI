@@ -19,8 +19,8 @@ from typing import List, Optional
 
 from sentence_transformers import SentenceTransformer
 
-from docuqueryai.config import USE_GPU, BATCH_SIZE
-from docuqueryai.utils import embedding_cache, compute_text_hash, monitor_performance
+from src.config import USE_GPU, BATCH_SIZE
+from src.utils import embedding_cache, compute_text_hash, monitor_performance
 
 logger = logging.getLogger("embeddings")
 

@@ -16,7 +16,7 @@ implemented correctly on top of it.
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from docuqueryai.ingestion.document_model import Chunk, RetrievedChunk
+from src.ingestion.document_model import Chunk, RetrievedChunk
 
 
 class VectorStore(ABC):

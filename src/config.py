@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 # === Load environment variables from .env file ===
-# config.py lives one directory below the repo root (docuqueryai/config.py);
+# config.py lives one directory below the repo root (src/config.py);
 # point load_dotenv at the repo-root .env explicitly rather than relying on
 # its default search behavior, which varies by python-dotenv version and by
 # the process's current working directory.

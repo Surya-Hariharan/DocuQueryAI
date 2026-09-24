@@ -3,7 +3,7 @@ import logging
 from typing import List, BinaryIO
 import PyPDF2
 from transformers import AutoTokenizer
-from docuqueryai.utils import monitor_performance
+from src.utils import monitor_performance
 
 # === Logging Setup ===
 logging.basicConfig(level=logging.INFO)

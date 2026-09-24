@@ -12,10 +12,8 @@ license = { file = "LICENSE" }
 dynamic = ["dependencies"]
 
 [project.optional-dependencies]
-# Kept in sync by hand with requirements-dev.txt's own pytest pin — that
-# file additionally does `-r requirements.txt` for plain `pip install -r`
-# workflows, a directive pyproject.toml's dependency-file reader can't
-# follow, so it isn't reused here directly.
+# `pip install -e ".[dev]"` is the one place test-only dependencies are
+# declared — no separate requirements-dev.txt to keep in sync.
 dev = ["pytest==8.2.0"]
 
 [tool.setuptools.dynamic]
@@ -24,7 +22,12 @@ dev = ["pytest==8.2.0"]
 dependencies = { file = ["requirements.txt"] }
 
 [tool.setuptools.packages.find]
-where = ["src"]
+# "src" is the package itself here (src/__init__.py makes it one), not a
+# container to search inside — so discovery starts at the repo root, not
+# where = ["src"] (which would instead look for packages *inside* src/ and
+# install each one top-level, e.g. "api" instead of "src.api").
+where = ["."]
+include = ["src*"]
 
 [tool.pytest.ini_options]
 # Canonical invocation is `pytest` (or `pytest -v`) from the repository
@@ -33,4 +36,4 @@ where = ["src"]
 # Installation section.
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-pythonpath = ["src"]
+pythonpath = ["."]
