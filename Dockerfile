@@ -19,15 +19,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy all source code, including the docuqueryai package under src/,
-# pyproject.toml, README.md and LICENSE (both read by pyproject.toml).
-# .dockerignore keeps .env, .git, caches, and the test suite out of this
-# and every layer above it.
+# Copy all source code, including the src/ package, pyproject.toml,
+# README.md and LICENSE (both read by pyproject.toml). .dockerignore keeps
+# .env, .git, caches, and the test suite out of this and every layer above it.
 COPY . .
 
 # Properly install the package itself (--no-deps: dependencies are already
-# installed above; this just registers "docuqueryai" as an importable,
-# installed package rather than relying on a PYTHONPATH/cwd convention).
+# installed above; this just registers "src" as an importable, installed
+# package rather than relying on a PYTHONPATH/cwd convention).
 RUN pip install --no-cache-dir --no-deps .
 
 # Set environment variables for optimization
@@ -43,6 +42,6 @@ EXPOSE 10000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:10000/health')"
 
-# Run app with optimized settings. docuqueryai is now a properly installed
+# Run app with optimized settings. src is now a properly installed
 # package (see above), not dependent on the container's working directory.
-CMD ["uvicorn", "docuqueryai.api.main:app", "--host", "0.0.0.0", "--port", "10000", "--workers", "2"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "10000", "--workers", "2"]

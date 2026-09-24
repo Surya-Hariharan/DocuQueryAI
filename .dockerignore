@@ -44,7 +44,6 @@ tests/
 .coverage
 htmlcov/
 .tox/
-requirements-dev.txt
 
 # IDE / editor files
 .vscode/
