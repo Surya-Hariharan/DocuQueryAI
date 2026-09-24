@@ -3,8 +3,8 @@ import re
 import threading
 from groq import Groq
 
-from src.config import GROQ_API_KEY, LLM_MODEL
-from src.utils import monitor_performance, retry_on_failure
+from docuqueryai.config import GROQ_API_KEY, LLM_MODEL
+from docuqueryai.utils import monitor_performance, retry_on_failure
 
 # === Logging ===
 logging.basicConfig(level=logging.INFO)

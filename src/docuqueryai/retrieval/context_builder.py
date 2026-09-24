@@ -7,8 +7,8 @@ document either came from.
 
 from typing import List, Tuple
 
-from src.config import MAX_CONTEXT_TOKENS
-from src.ingestion.document_model import RetrievedChunk
+from docuqueryai.config import MAX_CONTEXT_TOKENS
+from docuqueryai.ingestion.document_model import RetrievedChunk
 
 
 def build_context(chunks: List[RetrievedChunk], max_tokens: int = MAX_CONTEXT_TOKENS) -> Tuple[str, List[dict]]:

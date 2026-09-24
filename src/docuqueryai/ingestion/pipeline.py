@@ -10,11 +10,11 @@ import logging
 import os
 from typing import List, Optional
 
-from src.config import PDF_FOLDER
-from src.ingestion.document_model import Chunk
-from src.ingestion.parsers import get_parser
-from src.ingestion.file_type_detector import detect_file_type
-from src.ingestion.chunking import split_text_into_chunks
+from docuqueryai.config import PDF_FOLDER
+from docuqueryai.ingestion.document_model import Chunk
+from docuqueryai.ingestion.parsers import get_parser
+from docuqueryai.ingestion.file_type_detector import detect_file_type
+from docuqueryai.ingestion.chunking import split_text_into_chunks
 
 logger = logging.getLogger("pipeline")
 
@@ -25,15 +25,25 @@ def parse_document(data: bytes, filename: Optional[str] = None) -> List[Chunk]:
     section's text through the shared leaf-level chunker — carrying that
     section's page/sheet/type metadata onto every chunk it produces.
 
-    Raises ValueError if the format can't be identified or has no
-    registered parser.
+    Raises ValueError for anything the caller should see as a clean,
+    controlled failure: an unidentifiable format, a password-protected PDF,
+    or a file whose bytes don't actually match the format they claim to be
+    (e.g. a corrupted DOCX/XLSX — a wrong magic-byte-vs-content mismatch
+    surfaces as whatever internal exception the underlying library raises,
+    which must not reach the API caller as a raw, uncontrolled traceback).
     """
     file_type = detect_file_type(data, filename)
     if file_type == "unknown":
         raise ValueError("Could not identify the document format (unsupported or unrecognized file type)")
 
     parser = get_parser(file_type)
-    canonical_doc = parser.parse(data)
+    try:
+        canonical_doc = parser.parse(data)
+    except ValueError:
+        raise  # already a controlled, specific error (e.g. password-protected) — pass it through as-is
+    except Exception as e:
+        logger.warning(f"Failed to parse {file_type} document: {e}")
+        raise ValueError(f"This file could not be read as a valid {file_type.upper()} document.") from e
 
     chunks: List[Chunk] = []
     for section in canonical_doc.sections:
@@ -55,7 +65,7 @@ def parse_files_in_folder(folder_path: str = PDF_FOLDER, vector_store=None):
     Not used by the live API. Pass an already-initialized `vector_store` to
     reuse its connection pool; if omitted, a new one is created here.
     """
-    from src.retrieval.pg_vector_store import PgVectorStore  # deferred: avoids importing the DB layer for API-side parsing
+    from docuqueryai.retrieval.pg_vector_store import PgVectorStore  # deferred: avoids importing the DB layer for API-side parsing
 
     if vector_store is None:
         vector_store = PgVectorStore()

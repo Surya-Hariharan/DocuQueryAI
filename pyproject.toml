@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docuqueryai"
+version = "3.0.0"
+description = "LLM-powered document ingestion, retrieval, and grounded Q&A over PDF/DOCX/XLSX/CSV documents."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+dynamic = ["dependencies"]
+
+[project.optional-dependencies]
+# Kept in sync by hand with requirements-dev.txt's own pytest pin — that
+# file additionally does `-r requirements.txt` for plain `pip install -r`
+# workflows, a directive pyproject.toml's dependency-file reader can't
+# follow, so it isn't reused here directly.
+dev = ["pytest==8.2.0"]
+
+[tool.setuptools.dynamic]
+# Single source of truth: the same requirements.txt used by Docker and
+# `pip install -r requirements.txt` also backs the packaged dependency list.
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Canonical invocation is `pytest` (or `pytest -v`) from the repository
+# root. pythonpath here means that still works even without `pip install
+# -e .` first, but the package is also properly installable — see README's
+# Installation section.
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = ["src"]

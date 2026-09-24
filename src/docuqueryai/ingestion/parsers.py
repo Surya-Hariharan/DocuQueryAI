@@ -13,8 +13,8 @@ from typing import Optional
 import openpyxl
 from docx import Document as DocxDocument
 
-from src.ingestion.document_model import CanonicalDocument, DocumentSection, SectionType
-from src.ingestion.chunking import extract_pages_from_pdf
+from docuqueryai.ingestion.document_model import CanonicalDocument, DocumentSection, SectionType
+from docuqueryai.ingestion.chunking import extract_pages_from_pdf
 
 logger = logging.getLogger("parsers")
 

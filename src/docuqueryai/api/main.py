@@ -12,15 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 
-from src.config import GROQ_API_KEY, BEARER_TOKEN, TOP_K_CHUNKS, MAX_DOWNLOAD_BYTES, DB_POOL_MIN, DB_POOL_MAX
-from src.ingestion.pipeline import parse_document
-from src.ingestion.file_type_detector import detect_file_type
-from src.retrieval.context_builder import build_context
-from src.generation.answer_generator import generate_answer, looks_grounded, get_token_usage_stats
-from src.retrieval.pg_vector_store import PgVectorStore
-from src.utils import monitor_performance, query_cache, compute_text_hash, compute_bytes_hash, embedding_cache
-from src.retrieval.embeddings import get_cache_stats
-from src.security.url_safety import safe_fetch
+from docuqueryai.config import GROQ_API_KEY, BEARER_TOKEN, TOP_K_CHUNKS, MAX_DOWNLOAD_BYTES, DB_POOL_MIN, DB_POOL_MAX
+from docuqueryai.ingestion.pipeline import parse_document
+from docuqueryai.ingestion.file_type_detector import detect_file_type
+from docuqueryai.retrieval.context_builder import build_context
+from docuqueryai.generation.answer_generator import generate_answer, looks_grounded, get_token_usage_stats
+from docuqueryai.retrieval.pg_vector_store import PgVectorStore
+from docuqueryai.utils import monitor_performance, query_cache, compute_text_hash, compute_bytes_hash, embedding_cache
+from docuqueryai.retrieval.embeddings import get_cache_stats
+from docuqueryai.security.url_safety import safe_fetch
 
 # === Vector Store (single shared instance) ===
 vector_store = PgVectorStore()
