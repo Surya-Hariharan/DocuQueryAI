@@ -984,6 +984,7 @@ This project directly addresses the HackRx 6.0 problem statement:
 
 ---
 
+<<<<<<< HEAD
 ## 📊 Technical Highlights for Judges
 
 ### Innovation
@@ -1044,6 +1045,8 @@ curl -X POST http://localhost:8000/hackrx/run \
 
 ---
 
+=======
+>>>>>>> 92ef31eadf0df82679841c72fc5a8c08184984b7
 **Built for HackRx 6.0 | Production-Ready | High-Performance | Scalable**
 
 *Making unstructured document understanding accessible through intelligent LLM-powered retrieval* 🚀
