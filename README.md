@@ -43,9 +43,9 @@ Build a system that uses Large Language Models (LLMs) to **process natural langu
 ## ⚙️ Key Features
 
 ### Core Capabilities
-- 📥 **Document Ingestion** - Process PDFs from URLs (extensible to DOCX, emails)
+- 📥 **Multi-Format Ingestion** - PDF, DOCX, XLSX, and CSV, from a URL or direct upload, with the format detected from the file's actual bytes
 - ✂️ **Intelligent Chunking** - Token-aware, sentence-boundary-respecting text splitting
-- 🔍 **Semantic Search** - Fast vector similarity using pgvector/FAISS
+- 🔍 **Semantic Search** - Fast vector similarity using pgvector
 - 🤖 **LLM-Powered Answers** - Context-aware response generation via Groq API
 - 🧠 **Traceable Results** - Explainable answers with source context
 
@@ -108,7 +108,6 @@ Build a system that uses Large Language Models (LLMs) to **process natural langu
 ┌──────────────────────────────────────────────┐
 │           Vector Database                    │
 │  • PostgreSQL + pgvector (IVFFLAT index)     │
-│  • FAISS (optional, for ANN search)          │
 │  • Connection Pooling (2-10 connections)     │
 │  • Deduplication (hash-based)                │
 └──────────────────┬───────────────────────────┘
@@ -147,8 +146,7 @@ Build a system that uses Large Language Models (LLMs) to **process natural langu
 | **LLM** | Groq (Llama 3) | Fast answer generation |
 | **Embeddings** | SentenceTransformers (E5-small-v2) | 384-dim semantic vectors |
 | **Vector DB** | PostgreSQL + pgvector | Persistent vector storage |
-| **Fast Search** | FAISS (optional) | Approximate nearest neighbor |
-| **PDF Processing** | PyPDF2 | Text extraction |
+| **Document Parsing** | PyPDF2, python-docx, openpyxl, csv | PDF, DOCX, XLSX, CSV text extraction |
 | **ML Framework** | PyTorch | GPU acceleration |
 | **Caching** | In-memory LRU | Embedding & query cache |
 | **Deployment** | Docker | Containerization |
@@ -158,21 +156,39 @@ Build a system that uses Large Language Models (LLMs) to **process natural langu
 
 ## 📂 Project Structure
 
+Modules are grouped by pipeline stage — ingestion, retrieval, generation,
+security — inside one importable package, rather than ~15 flat files at
+the repo root.
+
 ```
 DocuQueryAI/
-├── api/
-│   └── main.py              # FastAPI app, endpoints, authentication
-├── parser.py                # PDF extraction & intelligent chunking
-├── answer_generator.py      # LLM prompt building & Groq API calls
-├── db_vector_store.py       # PostgreSQL/pgvector operations
-├── embeddings.py            # Embedding generation (GPU-accelerated)
-├── faiss_store.py           # FAISS vector store (optional)
-├── utils.py                 # Utilities (caching, monitoring, retry)
-├── config.py                # Environment & configuration
-├── requirements.txt         # Python dependencies
-├── Dockerfile               # Container image
-├── .env.example             # Environment template
-└── README.md                # This file
+├── src/                            # the application package
+│   ├── config.py                   # Environment & configuration
+│   ├── utils.py                    # Utilities (caching, monitoring, retry)
+│   ├── api/
+│   │   └── main.py                 # FastAPI app, endpoints, authentication
+│   ├── ingestion/
+│   │   ├── document_model.py       # CanonicalDocument / DocumentSection / Chunk / RetrievedChunk
+│   │   ├── file_type_detector.py   # Magic-byte format detection (not trusted from extension)
+│   │   ├── chunking.py             # PDF page extraction & token-aware chunking primitives
+│   │   ├── parsers.py              # Format-specific parsers (PDF/DOCX/XLSX/CSV) + registry
+│   │   └── pipeline.py             # The one ingestion pipeline: detect → parse → chunk → metadata
+│   ├── retrieval/
+│   │   ├── vector_store.py         # VectorStore interface (contract for storage backends)
+│   │   ├── pg_vector_store.py      # PostgreSQL/pgvector implementation
+│   │   ├── embeddings.py           # Embedding generation (GPU-accelerated)
+│   │   └── context_builder.py      # Source-tagged prompt context assembly
+│   ├── generation/
+│   │   └── answer_generator.py     # LLM prompt building, Groq API calls, groundedness check
+│   └── security/
+│       └── url_safety.py           # SSRF-guarded, size-capped URL fetching
+├── tests/                          # pytest suite — see Testing below
+├── requirements.txt                # Python dependencies
+├── requirements-dev.txt            # + pytest, for running the test suite
+├── pytest.ini
+├── Dockerfile                      # Container image
+├── .env.example                    # Environment template
+└── README.md                       # This file
 ```
 
 ---
@@ -262,16 +278,17 @@ The application will automatically create the required table with optimized inde
 
 ### 5️⃣ Run the Application
 
+Run these from the repository root — `src` is the application Python
+package, importable as-is with no `sys.path` tricks or directory-changing.
+
 **Development Mode:**
 ```bash
-cd api
-uvicorn main:app --reload --port 8000
+uvicorn src.api.main:app --reload --port 8000
 ```
 
 **Production Mode:**
 ```bash
-cd api
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 **Docker:**
@@ -341,7 +358,9 @@ GET /health
 ---
 
 #### 2. Process Document and Answer Questions (Main Endpoint)
-Upload a PDF document via URL and ask multiple questions.
+Fetch a document from a URL and ask multiple questions in one call. Format
+(PDF, DOCX, XLSX, or CSV) is detected from the document's actual bytes, not
+the URL or file extension.
 
 **Request:**
 ```http
@@ -366,22 +385,89 @@ Content-Type: application/json
 ```json
 {
   "answers": [
-    "The policy covers medical expenses including hospitalization, surgery, and emergency services as outlined in Section 4...",
-    "The claim settlement process involves submitting Form A within 30 days of discharge, along with original bills...",
-    "Pre-existing conditions are covered after a waiting period of 12 months as per clause 6.2..."
+    {
+      "answer": "The policy covers medical expenses including hospitalization, surgery, and emergency services as outlined in Section 4 (Source 1).",
+      "sources": [
+        {
+          "source": 1,
+          "document_id": "3f9a1c2e4b7d4e6f9a0b1c2d3e4f5a6b",
+          "source_uri": "https://example.com/policy.pdf",
+          "page_number": 4,
+          "sheet_name": null
+        }
+      ],
+      "low_confidence": false
+    },
+    {
+      "answer": "I don't have enough information in the provided document(s) to answer this question.",
+      "sources": [],
+      "low_confidence": false
+    }
   ]
 }
 ```
 
+Each answer carries its own `sources` (which document/page/sheet it was grounded in) and a `low_confidence` flag — a cheap heuristic tripwire for answers whose wording doesn't overlap much with the retrieved context, not a guarantee of correctness either way. The model is instructed to refuse explicitly (see the second example above) rather than fabricate when the context is insufficient.
+
 **Status Codes:**
 - `200 OK` - Successfully processed
-- `400 Bad Request` - Invalid PDF URL or malformed request
+- `400 Bad Request` - Invalid document URL, unrecognized format, or malformed request
 - `401 Unauthorized` - Invalid or missing bearer token
 - `500 Internal Server Error` - Processing error
 
 ---
 
-#### 3. System Statistics
+#### 3. Upload a Document
+Upload a file directly (PDF, DOCX, XLSX, or CSV) instead of fetching it from
+a URL. Returns a `document_id` to use with endpoint 4.
+
+**Request:**
+```http
+POST /documents/upload
+Authorization: Bearer <your_token>
+Content-Type: multipart/form-data
+
+file: <binary>
+```
+
+**Response:**
+```json
+{
+  "document_id": "3f9a1c2e4b7d4e6f9a0b1c2d3e4f5a6b",
+  "chunks_stored": 42
+}
+```
+
+**Status Codes:**
+- `200 OK` - Successfully parsed and stored
+- `400 Bad Request` - File too large or an unrecognized/unsupported format
+- `401 Unauthorized` - Invalid or missing bearer token
+
+---
+
+#### 4. Ask a Previously Ingested Document
+Ask questions against a document already ingested via endpoint 2 or 3,
+identified by its `document_id`.
+
+**Request:**
+```http
+POST /documents/{document_id}/ask
+Authorization: Bearer <your_token>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "questions": ["What is the termination clause?"]
+}
+```
+
+**Response:** Same shape as endpoint 2 — a list of `{answer, sources, low_confidence}` objects.
+
+---
+
+#### 5. System Statistics
 Get detailed system performance statistics.
 
 **Request:**
@@ -413,7 +499,7 @@ Authorization: Bearer <your_token>
 
 ---
 
-#### 4. Clear Cache
+#### 6. Clear Cache
 Clear all in-memory caches (useful for testing or maintenance).
 
 **Request:**
@@ -469,6 +555,28 @@ These interfaces allow you to:
 - Test API calls directly
 - View request/response schemas
 - Understand authentication requirements
+
+---
+
+## 🧪 Testing
+
+```bash
+pip install -r requirements-dev.txt
+pytest -v
+```
+
+Most of the suite (file-type detection, the SSRF guard, context building,
+the groundedness heuristic) is dependency-light and runs anywhere. A few
+modules need the full stack to even import and skip cleanly without it:
+
+- `test_document_parsers.py` — needs `transformers` (chunking.py loads a
+  tokenizer at import time), `python-docx`, `openpyxl`
+- `test_batch_failure.py` — needs the full app import chain (`fastapi`,
+  `psycopg2`, `sentence-transformers`)
+- `test_retrieval_isolation.py` — needs a real, disposable PostgreSQL +
+  pgvector database; opt-in via `RUN_DB_INTEGRATION_TESTS=1` (see the
+  docstring at the top of that file). **Never point it at production** — it
+  truncates its tables.
 
 ---
 
@@ -551,11 +659,6 @@ BATCH_SIZE=32
 # Cache Size (higher = better hit rate, more memory)
 # Recommended: 1000 (small), 5000 (standard), 10000 (large)
 CACHE_SIZE=5000
-
-# Vector Search Backend
-# false = PostgreSQL pgvector (persistent, ACID)
-# true = FAISS (faster, in-memory, optional persistence)
-USE_FAISS=false
 
 # Retrieval Configuration
 TOP_K_CHUNKS=5              # Number of relevant chunks to retrieve
@@ -724,9 +827,6 @@ USE_GPU=true
 # Increase cache size
 CACHE_SIZE=10000
 
-# Use FAISS for faster vector search
-USE_FAISS=true
-
 # Increase connection pool
 DB_POOL_MAX=20
 ```
@@ -825,12 +925,12 @@ Contributions are welcome! To contribute:
 # Clone your fork
 git clone https://github.com/your-username/DocuQueryAI.git
 
-# Install dev dependencies
-pip install -r requirements.txt
+# Install dev dependencies (includes pytest)
+pip install -r requirements-dev.txt
 
 # Make changes and test
-cd api
-uvicorn main:app --reload
+uvicorn src.api.main:app --reload
+pytest -v
 ```
 
 ---
@@ -888,9 +988,9 @@ This project directly addresses the HackRx 6.0 problem statement:
 
 ### Innovation
 - **Token-Aware Chunking:** Uses model's actual tokenizer for precise chunk boundaries
-- **Multi-Layer Caching:** LRU cache at embedding and query levels (60-80% hit rate)
-- **Hybrid Search:** Supports both pgvector (persistent) and FAISS (speed)
-- **GPU Acceleration:** Automatic detection and utilization (40x faster embeddings)
+- **Multi-Layer Caching:** LRU cache at embedding and query levels
+- **Single Vector-Store Contract:** pgvector implements a shared `VectorStore` interface so a future backend can be added without touching ingestion/retrieval callers
+- **GPU Acceleration:** Automatic detection, with a CPU fallback if CUDA is unavailable
 
 ### Performance
 - **8-10x System Speedup:** Comprehensive optimization throughout the stack
@@ -922,8 +1022,8 @@ pip install -r requirements.txt
 # 2. Configure
 cp .env.example .env && nano .env  # Add your GROQ_API_KEY
 
-# 3. Run
-cd api && uvicorn main:app --reload
+# 3. Run (from the repo root)
+uvicorn docuqueryai.api.main:app --reload
 ```
 
 **Test the system:**

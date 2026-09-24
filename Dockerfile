@@ -18,16 +18,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy all source code including `api/` folder
+# Copy all source code, including the src/ package
 COPY . .
 
 # Set environment variables for optimization
 ENV PYTHONUNBUFFERED=1
 ENV OMP_NUM_THREADS=4
 ENV MKL_NUM_THREADS=4
-
-# Set working dir to where main.py is located
-WORKDIR /app/api
 
 # Set environment port and expose it
 ENV PORT=10000
@@ -37,5 +34,6 @@ EXPOSE 10000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:10000/health')"
 
-# Run app with optimized settings
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000", "--workers", "2"]
+# Run app with optimized settings — run from /app (the repo root) so
+# src is importable as a proper package, no sys.path tricks needed.
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "10000", "--workers", "2"]
