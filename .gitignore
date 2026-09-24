@@ -1,7 +1,7 @@
 # Environment files
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Python
 __pycache__/
@@ -10,6 +10,7 @@ __pycache__/
 *.so
 .Python
 venv/
+.venv/
 env/
 ENV/
 build/
@@ -25,6 +26,7 @@ sdist/
 var/
 wheels/
 *.egg-info/
+*.whl
 .installed.cfg
 *.egg
 
@@ -45,6 +47,9 @@ logs/
 .coverage
 htmlcov/
 .tox/
+.benchmarks/
+.mypy_cache/
+.ruff_cache/
 
 # Documents (don't commit user PDFs)
 *.pdf
