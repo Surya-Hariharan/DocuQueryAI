@@ -1023,7 +1023,7 @@ pip install -r requirements.txt
 cp .env.example .env && nano .env  # Add your GROQ_API_KEY
 
 # 3. Run (from the repo root)
-uvicorn docuqueryai.api.main:app --reload
+uvicorn src.api.main:app --reload
 ```
 
 **Test the system:**
