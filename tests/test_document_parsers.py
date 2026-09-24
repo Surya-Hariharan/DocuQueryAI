@@ -1,6 +1,6 @@
 """
-Parser edge-case tests. docuqueryai.ingestion.parsers imports
-docuqueryai.ingestion.chunking, which loads the e5-small-v2 tokenizer at
+Parser edge-case tests. src.ingestion.parsers imports
+src.ingestion.chunking, which loads the e5-small-v2 tokenizer at
 module import time (a real network fetch on first run, or a local HF
 cache) — so this whole module needs `transformers` available and
 reachable, not just `PyPDF2`/`python-docx`/`openpyxl`. It will skip cleanly
@@ -18,7 +18,7 @@ pytest.importorskip("openpyxl", reason="openpyxl not installed")
 
 import PyPDF2  # noqa: E402
 
-from docuqueryai.ingestion.parsers import PdfParser, DocxParser, XlsxParser, CsvParser  # noqa: E402
+from src.ingestion.parsers import PdfParser, DocxParser, XlsxParser, CsvParser  # noqa: E402
 
 
 class TestPdfParser:

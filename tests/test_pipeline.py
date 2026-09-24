@@ -13,7 +13,7 @@ import pytest
 
 pytest.importorskip("transformers", reason="chunking.py loads a HF tokenizer at import time")
 
-from docuqueryai.ingestion.pipeline import parse_document
+from src.ingestion.pipeline import parse_document
 
 
 def test_unrecognized_format_raises_value_error():

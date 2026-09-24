@@ -13,7 +13,7 @@ import pytest
 
 pytest.importorskip("transformers", reason="chunking.py loads a HF tokenizer at import time")
 
-from docuqueryai.ingestion.chunking import split_text_into_chunks, count_tokens, MIN_CHUNK_TOKENS
+from src.ingestion.chunking import split_text_into_chunks, count_tokens, MIN_CHUNK_TOKENS
 
 
 REALISTIC_SHORT_CONTENT = [
@@ -88,7 +88,7 @@ class TestHeadingAndTableCellsSurviveThroughTheFullPipeline:
         pytest.importorskip("docx", reason="python-docx not installed")
         import io
         import docx
-        from docuqueryai.ingestion.pipeline import parse_document
+        from src.ingestion.pipeline import parse_document
 
         document = docx.Document()
         document.add_heading("Q4 Financial Summary", level=1)
@@ -107,7 +107,7 @@ class TestHeadingAndTableCellsSurviveThroughTheFullPipeline:
         pytest.importorskip("openpyxl", reason="openpyxl not installed")
         import io
         import openpyxl
-        from docuqueryai.ingestion.pipeline import parse_document
+        from src.ingestion.pipeline import parse_document
 
         wb = openpyxl.Workbook()
         ws = wb.active

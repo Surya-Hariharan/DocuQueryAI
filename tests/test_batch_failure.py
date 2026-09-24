@@ -4,7 +4,7 @@ must not take down the answers already computed for the others.
 
 This module needs the full application import chain (fastapi, psycopg2,
 sentence-transformers/torch via pg_vector_store -> embeddings, groq, etc.)
-since docuqueryai/api/main.py wires all of it together at import time. It
+since src/api/main.py wires all of it together at import time. It
 will skip cleanly in a lighter environment; run it in a venv with
 requirements.txt installed to actually exercise it.
 """
@@ -18,8 +18,8 @@ pytest.importorskip("fastapi", reason="requires the full app dependency stack")
 pytest.importorskip("psycopg2", reason="requires the full app dependency stack")
 pytest.importorskip("sentence_transformers", reason="requires the full app dependency stack")
 
-import docuqueryai.api.main as main  # noqa: E402  (import must follow the importorskip guards above)
-from docuqueryai.ingestion.document_model import RetrievedChunk  # noqa: E402
+import src.api.main as main  # noqa: E402  (import must follow the importorskip guards above)
+from src.ingestion.document_model import RetrievedChunk  # noqa: E402
 
 
 def _fake_chunk(text="some relevant context"):

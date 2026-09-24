@@ -12,8 +12,8 @@ import pytest
 
 pytest.importorskip("transformers", reason="chunking.py loads a HF tokenizer at import time")
 
-from docuqueryai.ingestion.pipeline import parse_document
-from docuqueryai.ingestion.chunking import split_text_into_chunks
+from src.ingestion.pipeline import parse_document
+from src.ingestion.chunking import split_text_into_chunks
 
 FIXTURES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
 

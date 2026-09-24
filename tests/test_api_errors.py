@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-import docuqueryai.api.main as main
+import src.api.main as main
 
 client = TestClient(main.app)
 AUTH = {"Authorization": f"Bearer {main.BEARER_TOKEN}"}
@@ -46,7 +46,7 @@ class TestUploadEndpointErrorHandling:
         assert response.status_code == 400
 
     def test_oversized_upload_returns_clean_400(self):
-        from docuqueryai.config import MAX_DOWNLOAD_BYTES
+        from src.config import MAX_DOWNLOAD_BYTES
         oversized = b"%PDF-1.4\n" + (b"x" * (MAX_DOWNLOAD_BYTES + 1))
         response = _upload("huge.pdf", oversized)
         assert response.status_code == 400
